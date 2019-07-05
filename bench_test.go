@@ -1,53 +1,43 @@
 package cors
 
 import (
-	"net/http"
 	"testing"
+
+	"github.com/valyala/fasthttp"
 )
 
-type FakeResponse struct {
-	header http.Header
-}
-
-func (r FakeResponse) Header() http.Header {
-	return r.header
-}
-
-func (r FakeResponse) WriteHeader(n int) {
-}
-
-func (r FakeResponse) Write(b []byte) (n int, err error) {
-	return len(b), nil
+func newRequestCtx(method, uri string) *fasthttp.RequestCtx {
+	ctx := &fasthttp.RequestCtx{}
+	ctx.Request.Header.SetMethod(method)
+	ctx.Request.SetRequestURI(uri)
+	return ctx
 }
 
 func BenchmarkWithout(b *testing.B) {
-	res := FakeResponse{http.Header{}}
-	req, _ := http.NewRequest("GET", "http://example.com/foo", nil)
+	ctx := newRequestCtx("GET", "http://example.com/foo")
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		testHandler.ServeHTTP(res, req)
+		testHandler(ctx)
 	}
 }
 
 func BenchmarkDefault(b *testing.B) {
-	res := FakeResponse{http.Header{}}
-	req, _ := http.NewRequest("GET", "http://example.com/foo", nil)
-	req.Header.Add("Origin", "somedomain.com")
+	ctx := newRequestCtx("GET", "http://example.com/foo")
+	ctx.Request.Header.Add("Origin", "somedomain.com")
 	handler := Default().Handler(testHandler)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		handler.ServeHTTP(res, req)
+		handler(ctx)
 	}
 }
 
 func BenchmarkAllowedOrigin(b *testing.B) {
-	res := FakeResponse{http.Header{}}
-	req, _ := http.NewRequest("GET", "http://example.com/foo", nil)
-	req.Header.Add("Origin", "somedomain.com")
+	ctx := newRequestCtx("GET", "http://example.com/foo")
+	ctx.Request.Header.Add("Origin", "somedomain.com")
 	c := New(Options{
 		AllowedOrigins: []string{"somedomain.com"},
 	})
@@ -56,33 +46,31 @@ func BenchmarkAllowedOrigin(b *testing.B) {
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		handler.ServeHTTP(res, req)
+		handler(ctx)
 	}
 }
 
 func BenchmarkPreflight(b *testing.B) {
-	res := FakeResponse{http.Header{}}
-	req, _ := http.NewRequest("OPTIONS", "http://example.com/foo", nil)
-	req.Header.Add("Access-Control-Request-Method", "GET")
+	ctx := newRequestCtx("OPTIONS", "http://example.com/foo")
+	ctx.Request.Header.Add("Access-Control-Request-Method", "GET")
 	handler := Default().Handler(testHandler)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		handler.ServeHTTP(res, req)
+		handler(ctx)
 	}
 }
 
 func BenchmarkPreflightHeader(b *testing.B) {
-	res := FakeResponse{http.Header{}}
-	req, _ := http.NewRequest("OPTIONS", "http://example.com/foo", nil)
-	req.Header.Add("Access-Control-Request-Method", "GET")
-	req.Header.Add("Access-Control-Request-Headers", "Accept")
+	ctx := newRequestCtx("OPTIONS", "http://example.com/foo")
+	ctx.Request.Header.Add("Access-Control-Request-Method", "GET")
+	ctx.Request.Header.Add("Access-Control-Request-Headers", "Accept")
 	handler := Default().Handler(testHandler)
 
 	b.ReportAllocs()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		handler.ServeHTTP(res, req)
+		handler(ctx)
 	}
 }
