@@ -1,6 +1,6 @@
-# Go CORS handler [![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/rs/cors) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/rs/cors/master/LICENSE) [![build](https://img.shields.io/travis/rs/cors.svg?style=flat)](https://travis-ci.org/rs/cors) [![Coverage](http://gocover.io/_badge/github.com/rs/cors)](http://gocover.io/github.com/rs/cors)
+# Go CORS handler [![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/lab259/cors) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/lab259/cors/master/LICENSE) [![Coverage](http://gocover.io/_badge/github.com/lab259/cors)](http://gocover.io/github.com/lab259/cors)
 
-CORS is a `net/http` handler implementing [Cross Origin Resource Sharing W3 specification](http://www.w3.org/TR/cors/) in Golang.
+CORS is a `fasthttp` handler implementing [Cross Origin Resource Sharing W3 specification](http://www.w3.org/TR/cors/) in Golang.
 
 ## Getting Started
 
@@ -10,29 +10,27 @@ After installing Go and setting up your [GOPATH](http://golang.org/doc/code.html
 package main
 
 import (
-    "net/http"
-
     "github.com/lab259/cors"
+    "github.com/valyala/fasthttp"
 )
 
 func main() {
-    mux := http.NewServeMux()
-    mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Content-Type", "application/json")
-        w.Write([]byte("{\"hello\": \"world\"}"))
-    })
-
     // cors.Default() setup the middleware with default options being
     // all origins accepted with simple methods (GET, POST). See
     // documentation below for more options.
-    handler := cors.Default().Handler(mux)
-    http.ListenAndServe(":8080", handler)
+    handler := cors.Default().Handler(requestHandler)
+    fasthttp.ListenAndServe(":8080", handler)
+}
+
+func requestHandler(ctx *fasthttp.RequestCtx) {
+    ctx.SetContentType("application/json")
+    fmt.Fprintf(ctx, "{\"hello\": \"world\"}")
 }
 ```
 
 Install `cors`:
 
-    go get github.com/rs/cors
+    go get github.com/lab259/cors
 
 Then run your server:
 
@@ -51,24 +49,15 @@ The server now runs on `localhost:8080`:
 
 ### Allow \* With Credentials Security Protection
 
-This library has been modified to avoid a well known security issue when configured with `AllowedOrigins` to `*` and `AllowCredentials` to `true`. Such setup used to make the library reflects the request `Origin` header value, working around a security protection embedded into the standard that makes clients to refuse such configuration. This behavior has been removed with [#55](https://github.com/rs/cors/issues/55) and [#57](https://github.com/rs/cors/issues/57).
+This library has been modified to avoid a well known security issue when configured with `AllowedOrigins` to `*` and `AllowCredentials` to `true`. Such setup used to make the library reflects the request `Origin` header value, working around a security protection embedded into the standard that makes clients to refuse such configuration. This behavior has been removed with [rs/cors#55](https://github.com/rs/cors/issues/55) and [rs/cors#57](https://github.com/rs/cors/issues/57).
 
 If you depend on this behavior and understand the implications, you can restore it using the `AllowOriginFunc` with `func(origin string) {return true}`.
 
-Please refer to [#55](https://github.com/rs/cors/issues/55) for more information about the security implications.
+Please refer to [rs/cors#55](https://github.com/rs/cors/issues/55) for more information about the security implications.
 
 ### More Examples
 
-- `net/http`: [examples/nethttp/server.go](https://github.com/rs/cors/blob/master/examples/nethttp/server.go)
-- [Goji](https://goji.io): [examples/goji/server.go](https://github.com/rs/cors/blob/master/examples/goji/server.go)
-- [Martini](http://martini.codegangsta.io): [examples/martini/server.go](https://github.com/rs/cors/blob/master/examples/martini/server.go)
-- [Negroni](https://github.com/codegangsta/negroni): [examples/negroni/server.go](https://github.com/rs/cors/blob/master/examples/negroni/server.go)
-- [Alice](https://github.com/justinas/alice): [examples/alice/server.go](https://github.com/rs/cors/blob/master/examples/alice/server.go)
-- [HttpRouter](https://github.com/julienschmidt/httprouter): [examples/httprouter/server.go](https://github.com/rs/cors/blob/master/examples/httprouter/server.go)
-- [Gorilla](http://www.gorillatoolkit.org/pkg/mux): [examples/gorilla/server.go](https://github.com/rs/cors/blob/master/examples/gorilla/server.go)
-- [Buffalo](https://gobuffalo.io): [examples/buffalo/server.go](https://github.com/rs/cors/blob/master/examples/buffalo/server.go)
-- [Gin](https://gin-gonic.github.io/gin): [examples/gin/server.go](https://github.com/rs/cors/blob/master/examples/gin/server.go)
-- [Chi](https://github.com/go-chi/chi): [examples/chi/server.go](https://github.com/rs/cors/blob/master/examples/chi/server.go)
+TODO
 
 ## Parameters
 
@@ -97,19 +86,25 @@ handler = c.Handler(handler)
 - **OptionsPassthrough** `bool`: Instructs preflight to let other potential next handlers to process the `OPTIONS` method. Turn this on if your application handles `OPTIONS`.
 - **Debug** `bool`: Debugging flag adds additional output to debug server side CORS issues.
 
-See [API documentation](http://godoc.org/github.com/rs/cors) for more info.
+See [API documentation](http://godoc.org/github.com/lab259/cors) for more info.
 
 ## Benchmarks
 
-    BenchmarkWithout          20000000    64.6 ns/op      8 B/op    1 allocs/op
-    BenchmarkDefault          3000000      469 ns/op    114 B/op    2 allocs/op
-    BenchmarkAllowedOrigin    3000000      608 ns/op    114 B/op    2 allocs/op
-    BenchmarkPreflight        20000000    73.2 ns/op      0 B/op    0 allocs/op
-    BenchmarkPreflightHeader  20000000    73.6 ns/op      0 B/op    0 allocs/op
-    BenchmarkParseHeaderList  2000000      847 ns/op    184 B/op    6 allocs/op
-    BenchmarkParse…Single     5000000      290 ns/op     32 B/op    3 allocs/op
-    BenchmarkParse…Normalized 2000000      776 ns/op    160 B/op    6 allocs/op
+    BenchmarkWithout-8                     200000000   9.45 ns/op  0 B/op     0 allocs/op
+    BenchmarkDefault-8                     2000000     646 ns/op   363 B/op   5 allocs/op
+    BenchmarkAllowedOrigin-8               2000000     607 ns/op   363 B/op   5 allocs/op
+    BenchmarkPreflight-8                   1000000     1322 ns/op  1065 B/op  7 allocs/op
+    BenchmarkPreflightHeader-8             1000000     1207 ns/op  1065 B/op  7 allocs/op
+    BenchmarkParseHeaderList-8             5000000     338 ns/op   184 B/op   6 allocs/op
+    BenchmarkParseHeaderListSingle-8       20000000    85.9 ns/op  32 B/op    3 allocs/op
+    BenchmarkParseHeaderListNormalized-8   5000000     312 ns/op   160 B/op   6 allocs/op
+    BenchmarkWildcard/match-8              200000000   9.14 ns/op  0 B/op     0 allocs/op
+    BenchmarkWildcard/too_short-8          2000000000  1.44 ns/op  0 B/op     0 allocs/op
+
+## Acknowledgments
+
+This is a fork of the incredible [`rs/cors`](https://github.com/rs/cors) package.
 
 ## Licenses
 
-All source code is licensed under the [MIT License](https://raw.github.com/rs/cors/master/LICENSE).
+All source code is licensed under the [MIT License](https://raw.github.com/lab259/cors/master/LICENSE).
