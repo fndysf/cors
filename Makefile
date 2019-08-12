@@ -1,3 +1,4 @@
+TESTRESULTSDIR=$(CURDIR)/test-results
 COVERDIR=$(CURDIR)/.cover
 COVERAGEFILE=$(COVERDIR)/cover.out
 COVERAGEREPORT=$(COVERDIR)/report.html
@@ -22,8 +23,8 @@ plot-mem:
 	@go tool pprof -alloc_space -http :8080 ./bench-results/mem.prof
 
 coverage-ci:
-	@mkdir -p $(COVERDIR)
-	@go test -covermode=count -coverprofile=$(COVERAGEFILE)
+	@mkdir -p $(COVERDIR) $(TESTRESULTSDIR)
+	@go test -v -covermode=count -coverprofile=$(COVERAGEFILE) 2>&1 | go run github.com/jstemmer/go-junit-report >  $(TESTRESULTSDIR)/report.xml
 
 coverage: coverage-ci
 	@cp "${COVERAGEFILE}" coverage.txt
