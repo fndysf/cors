@@ -397,8 +397,13 @@ func TestSpec(t *testing.T) {
 				AllowedOrigins: []string{"http://foobar.com"},
 			},
 			"OPTIONS",
-			map[string]string{},
-			map[string]string{},
+			map[string]string{
+				"Origin": "http://foobar.com",
+			},
+			map[string]string{
+				"Vary":                        "Origin",
+				"Access-Control-Allow-Origin": "http://foobar.com",
+			},
 		},
 	}
 	for i := range cases {
@@ -472,21 +477,6 @@ func TestHandlePreflightNoOptionsAbortion(t *testing.T) {
 	ctx.Request.SetRequestURI("http://example.com/foo")
 
 	s.handlePreflight(&ctx)
-
-	assertHeaders(t, &ctx.Response.Header, map[string]string{})
-}
-
-func TestHandleActualRequestAbortsOptionsMethod(t *testing.T) {
-	s := New(Options{
-		AllowedOrigins: []string{"http://foo.com"},
-	})
-
-	ctx := fasthttp.RequestCtx{}
-	ctx.Request.Header.SetMethod("OPTIONS")
-	ctx.Request.SetRequestURI("http://example.com/foo")
-	ctx.Request.Header.Add("Origin", "http://example.com/")
-
-	s.handleActualRequest(&ctx)
 
 	assertHeaders(t, &ctx.Response.Header, map[string]string{})
 }

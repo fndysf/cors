@@ -291,10 +291,6 @@ func (c *Cors) handleActualRequest(ctx *fasthttp.RequestCtx) {
 	origin := string(ctx.Request.Header.Peek("Origin"))
 	method := string(ctx.Method())
 
-	if method == http.MethodOptions {
-		c.logf("  Actual request no headers added: method == %s", method)
-		return
-	}
 	// Always set Vary, see https://github.com/rs/cors/issues/10
 	headers.Add("Vary", "Origin")
 	if len(origin) == 0 {
