@@ -1,4 +1,4 @@
-TESTRESULTSDIR=$(CURDIR)/test-results
+TESTRESULTSDIR=$(CURDIR)/test-results/cors
 COVERDIR=$(CURDIR)/.cover
 COVERAGEFILE=$(COVERDIR)/cover.out
 COVERAGEREPORT=$(COVERDIR)/report.html

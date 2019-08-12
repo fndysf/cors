@@ -1,4 +1,4 @@
-# Go CORS handler [![godoc](http://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/lab259/cors) [![license](http://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/lab259/cors/master/LICENSE) [![Coverage](http://gocover.io/_badge/github.com/lab259/cors)](http://gocover.io/github.com/lab259/cors)
+# Go CORS handler [![CircleCI](https://circleci.com/gh/lab259/cors/tree/master.svg?style=shield)](https://circleci.com/gh/lab259/cors/tree/master) [![godoc](https://img.shields.io/badge/godoc-reference-blue.svg?style=flat)](https://godoc.org/github.com/lab259/cors) [![license](https://img.shields.io/badge/license-MIT-red.svg?style=flat)](https://raw.githubusercontent.com/lab259/cors/master/LICENSE) [![Coverage](https://gocover.io/_badge/github.com/lab259/cors)](http://gocover.io/github.com/lab259/cors)
 
 CORS is a `fasthttp` handler implementing [Cross Origin Resource Sharing W3 specification](http://www.w3.org/TR/cors/) in Golang.
 
