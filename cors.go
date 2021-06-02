@@ -220,8 +220,8 @@ func (c *Cors) Handler(h fasthttp.RequestHandler) fasthttp.RequestHandler {
 			}
 		} else {
 			c.logf("Handler: Actual request")
-			c.handleActualRequest(ctx)
 			h(ctx)
+			c.handleActualRequest(ctx)
 		}
 	})
 }
@@ -292,7 +292,7 @@ func (c *Cors) handleActualRequest(ctx *fasthttp.RequestCtx) {
 	method := string(ctx.Method())
 
 	// Always set Vary, see https://github.com/rs/cors/issues/10
-	headers.Add("Vary", "Origin")
+	headers.Set("Vary", "Origin")
 	if len(origin) == 0 {
 		c.logf("  Actual request no headers added: missing origin")
 		return
