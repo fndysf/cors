@@ -1,4 +1,4 @@
-module github.com/lab259/cors
+module github.com/fndysf/cors
 
 go 1.12
 
